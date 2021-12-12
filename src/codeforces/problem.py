@@ -88,44 +88,71 @@ class ProblemScraper:
   
   @staticmethod
   def _name_from_problem (problem: element.Tag) -> str:
-    return ' '.join(problem.find('div', { 'class': 'title' }).text.strip().split()[1:])
+    name_div = problem.find('div', { 'class': 'title' })
+    title = name_div.text
+    name = ' '.join(title.split()[1:])
+    return name
   
   @staticmethod
   def _index_from_problem (problem: element.Tag) -> str:
-    return problem.find('div', { 'class': 'title' }).text.strip().split()[0][:-1]
+    index_div = problem.find('div', { 'class': 'title' })
+    title = index_div.text
+    index = title.split()[0][:-1]
+    return index
   
   @staticmethod
   def _time_limit_from_problem (problem: element.Tag) -> str:
-    return problem.find('div', { 'class': 'time-limit' }).text.strip()[len('time limit per test'):]
+    tl_div = problem.find('div', { 'class': 'time-limit' })
+    tl = tl_div.text.strip()
+    tl = tl[len('time limit per test'):] # remove prefix
+    return tl
   
   @staticmethod
   def _memory_limit_from_problem (problem: element.Tag) -> str:
-    return problem.find('div', { 'class': 'memory-limit' }).text.strip()[len('memory limit per test'):]
+    ml_div = problem.find('div', { 'class': 'memory-limit' })
+    ml = ml_div.text.strip()
+    ml = ml[len('memory limit per test'):] # remove prefix
+    return ml
   
   @staticmethod
   def _input_file_from_problem (problem: element.Tag) -> str:
-    return problem.find('div', { 'class': 'input-file' }).text.strip()[len('input'):]
+    inputfile_div = problem.find('div', { 'class': 'input-file' })
+    inputfile = inputfile_div.text.strip()
+    inputfile = inputfile[len('input'):] # remove prefix
+    return inputfile
   
   @staticmethod
   def _output_file_from_problem (problem: element.Tag) -> str:
-    return problem.find('div', { 'class': 'output-file' }).text.strip()[len('output'):]
+    outputfile_div = problem.find('div', { 'class': 'output-file' })
+    outputfile = outputfile_div.text.strip()
+    outputfile = outputfile[len('output'):] # remove prefix
+    return outputfile
   
   @staticmethod
   def _statement_from_problem (problem: element.Tag) -> str:
-    return markdownify(str(problem.find_all('div')[10]).strip()).strip()
+    statement_div = problem.find_all('div')[10]
+    md = markdownify(str(statement_div)).strip()
+    return ProblemScraper._latexify(md)
   
   @staticmethod
   def _input_specification_from_problem (problem: element.Tag) -> str:
-    return \
-      markdownify(str(problem.find('div', { 'class': 'input-specification' }))
-      .strip())[len('Input'):].strip()
+    inputspec_div = problem.find('div', { 'class': 'input-specification' })
+    md = markdownify(str(inputspec_div)).strip()
+    md = md[len('Input'):] # remove prefix
+    return ProblemScraper._latexify(md)
   
   @staticmethod
   def _output_specification_from_problem (problem: element.Tag) -> str:
-    return \
-      markdownify(str(problem.find('div', { 'class': 'output-specification' }))
-      .strip())[len('Output'):].strip()
+    outputspec_div = problem.find('div', { 'class': 'output-specification' })
+    md = markdownify(str(outputspec_div)).strip()
+    md = md[len('Output'):] # remove prefix
+    return ProblemScraper._latexify(md)
+  
+  @staticmethod
+  def _latexify (s: str) -> str:
+    return s.replace('$$$', '$').replace('$$', '$')
 
 if __name__ == '__main__':
-  scraper = ProblemScraper('https://codeforces.com/problemset/problem/4/A')
+  # scraper = ProblemScraper('https://codeforces.com/problemset/problem/4/A')
+  scraper = ProblemScraper('https://codeforces.com/problemset/problem/1614/E')
   scraper.scrape()
