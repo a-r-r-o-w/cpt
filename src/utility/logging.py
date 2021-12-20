@@ -10,38 +10,41 @@ class Logger:
 
   def info (self, message):
     colors = [
-      (Color.background_rgb, 0, 192, 0),
-      (Color.foreground_rgb, 0, 0, 0)
+      (Color.background_rgb, (0, 192, 0)),
+      (Color.foreground_rgb, (0, 0, 0)),
+      (Color.bold, ())
     ]
 
     m = '[INFO]'
     for color in colors:
-      m = color[0](*color[1:], m)
-    m = m + ': ' + message
+      m = color[0](*color[1], m)
+    m = m + ': ' + Color.foreground_rgb(160, 220, 160, message)
     print(m, file = self.stream)
   
   def error (self, message):
     colors = [
-      (Color.background_rgb, 192, 0, 0),
-      (Color.foreground_rgb, 0, 0, 0)
+      (Color.background_rgb, (192, 0, 0)),
+      (Color.foreground_rgb, (0, 0, 0)),
+      (Color.bold, ())
     ]
 
     m = '[ERROR]'
     for color in colors:
-      m = color[0](*color[1:], m)
-    m = m + ': ' + message
+      m = color[0](*color[1], m)
+    m = m + ': ' + Color.foreground_rgb(220, 160, 160, message)
     print(m, file = self.stream)
   
   def debug (self, message):
     colors = [
-      (Color.background_rgb, 0, 128, 192),
-      (Color.foreground_rgb, 0, 0, 0)
+      (Color.background_rgb, (0, 128, 192)),
+      (Color.foreground_rgb, (0, 0, 0)),
+      (Color.bold, ())
     ]
 
     m = '[DEBUG]'
     for color in colors:
-      m = color[0](*color[1:], m)
-    m = m + ': ' + message
+      m = color[0](*color[1], m)
+    m = m + ': ' + Color.foreground_rgb(160, 160, 220, message)
     print(m, file = self.stream)
 
 if __name__ == '__main__':
