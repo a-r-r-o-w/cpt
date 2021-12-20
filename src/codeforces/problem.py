@@ -13,6 +13,7 @@ sys.path.insert(0, '../')
 sys.path.insert(1, '../utility/')
 
 from utility.logging import Logger
+from utility.colors  import Color
 
 log = Logger()
 
@@ -30,6 +31,8 @@ class Problem:
     self,
     *,
     url: str = None,
+    id: int = None,
+    index: str = None,
     name: str = None,
     statement: str = None,
     time_limit: str = None,
@@ -40,15 +43,60 @@ class Problem:
     output_specification: str = None,
     notes: str = None
   ):
-    self.name = None,
-    self.time_limit = None,
-    self.memory_limit = None,
-    self.input_file = None,
-    self.output_file = None,
-    self.statement = None,
-    self.input_specification = None,
-    self.output_specification = None,
-    self.notes = None
+    self.url = url
+    self.id = id
+    self.index = index
+    self.name = name,
+    self.time_limit = time_limit,
+    self.memory_limit = memory_limit,
+    self.input_file = input_file,
+    self.output_file = output_file,
+    self.statement = statement,
+    self.input_specification = input_specification,
+    self.output_specification = output_specification,
+    self.notes = notes
+  
+  def brief_info (self):
+    pretty = f"""
+               Problem {self.id}/{self.index}
+         Name: {self.name}
+         Link: {self.url}
+        Input: {self.input_file}
+       Output: {self.output_file}
+   Time Limit: {self.time_limit}
+ Memory Limit: {self.memory_limit}
+"""
+    return pretty
+  
+  def markdown (self):
+    md = f"""
+# [{self.id}/{self.index} {self.name}]({self.url})
+
+**Input file: {self.input_file}**
+
+**Output file: {self.output_file}**
+
+**Time limit: {self.time_limit}**
+
+**Memory limit: {self.memory_limit}**
+
+### Statement
+
+{self.statement}
+
+### Input
+
+{self.input_specification}
+
+### Output
+
+{self.output_specification}
+
+### Notes
+
+{self.notes}
+"""
+    return md
 
 class ProblemScraper:
   """Problem Scraper for https://codeforces.com"""
@@ -56,6 +104,8 @@ class ProblemScraper:
   def __init__ (self, url: str):
     self.url = url
     self.problem = Problem()
+
+    self.scraped_content: element.Tag = None
   
   def scrape (self) -> Problem:
     log.info(f'Sending request to {self.url}')
@@ -65,85 +115,82 @@ class ProblemScraper:
     if r.status_code != 200:
       log.error(f'Request to {self.url} failed with status code: {r.status_code}')
     
-    problem = s.find('div', {'class': 'problem-statement'})
+    log.info('Parsing scraped content')
 
-    self.problem.index = ProblemScraper._index_from_problem(problem)
-    self.problem.name = ProblemScraper._name_from_problem(problem)
-    self.problem.time_limit = ProblemScraper._time_limit_from_problem(problem)
-    self.problem.memory_limit = ProblemScraper._memory_limit_from_problem(problem)
-    self.problem.input_file = ProblemScraper._input_file_from_problem(problem)
-    self.problem.output_file = ProblemScraper._output_file_from_problem(problem)
-    self.problem.statement = ProblemScraper._statement_from_problem(problem)
-    self.problem.input_specification = ProblemScraper._input_specification_from_problem(problem)
-    self.problem.output_specification = ProblemScraper._output_specification_from_problem(problem)
+    self.scraped_content = s.find('div', {'class': 'problem-statement'})
+    self.parse()
 
-    print(self.problem.index, self.problem.name)
-    print(self.problem.time_limit)
-    print(self.problem.memory_limit)
-    print(self.problem.input_file)
-    print(self.problem.output_file)
-    print(self.problem.statement)
-    print(self.problem.input_specification)
-    print(self.problem.output_specification)
+    pretty_info = Color.bold(
+      Color.foreground_rgb(120, 200, 250, self.problem.brief_info())
+    )
+
+    log.info('Problem Info:\n' + pretty_info)
   
-  @staticmethod
-  def _name_from_problem (problem: element.Tag) -> str:
-    name_div = problem.find('div', { 'class': 'title' })
+  def parse (self):
+    self.problem.index = self._get_index()
+    self.problem.url = self.url
+    self.problem.id = self._get_id()
+    self.problem.name = self._get_name()
+    self.problem.time_limit = self._get_time_limit()
+    self.problem.memory_limit = self._get_memory_limit()
+    self.problem.input_file = self._get_input_file()
+    self.problem.output_file = self._get_output_file()
+    self.problem.statement = self._get_statement()
+    self.problem.input_specification = self._get_input_specification()
+    self.problem.output_specification = self._get_output_specification()
+  
+  def _get_name (self) -> str:
+    name_div = self.scraped_content.find('div', { 'class': 'title' })
     title = name_div.text
     name = ' '.join(title.split()[1:])
     return name
   
-  @staticmethod
-  def _index_from_problem (problem: element.Tag) -> str:
-    index_div = problem.find('div', { 'class': 'title' })
+  def _get_id (self) -> str:
+    return int(self.url.split('/')[-2])
+  
+  def _get_index (self) -> str:
+    index_div = self.scraped_content.find('div', { 'class': 'title' })
     title = index_div.text
     index = title.split()[0][:-1]
     return index
   
-  @staticmethod
-  def _time_limit_from_problem (problem: element.Tag) -> str:
-    tl_div = problem.find('div', { 'class': 'time-limit' })
+  def _get_time_limit (self) -> str:
+    tl_div = self.scraped_content.find('div', { 'class': 'time-limit' })
     tl = tl_div.text.strip()
     tl = tl[len('time limit per test'):] # remove prefix
     return tl
   
-  @staticmethod
-  def _memory_limit_from_problem (problem: element.Tag) -> str:
-    ml_div = problem.find('div', { 'class': 'memory-limit' })
+  def _get_memory_limit (self) -> str:
+    ml_div = self.scraped_content.find('div', { 'class': 'memory-limit' })
     ml = ml_div.text.strip()
     ml = ml[len('memory limit per test'):] # remove prefix
     return ml
   
-  @staticmethod
-  def _input_file_from_problem (problem: element.Tag) -> str:
-    inputfile_div = problem.find('div', { 'class': 'input-file' })
+  def _get_input_file (self) -> str:
+    inputfile_div = self.scraped_content.find('div', { 'class': 'input-file' })
     inputfile = inputfile_div.text.strip()
     inputfile = inputfile[len('input'):] # remove prefix
     return inputfile
   
-  @staticmethod
-  def _output_file_from_problem (problem: element.Tag) -> str:
-    outputfile_div = problem.find('div', { 'class': 'output-file' })
+  def _get_output_file (self) -> str:
+    outputfile_div = self.scraped_content.find('div', { 'class': 'output-file' })
     outputfile = outputfile_div.text.strip()
     outputfile = outputfile[len('output'):] # remove prefix
     return outputfile
   
-  @staticmethod
-  def _statement_from_problem (problem: element.Tag) -> str:
-    statement_div = problem.find_all('div')[10]
+  def _get_statement (self) -> str:
+    statement_div = self.scraped_content.find_all('div')[10]
     md = markdownify(str(statement_div)).strip()
     return ProblemScraper._latexify(md)
   
-  @staticmethod
-  def _input_specification_from_problem (problem: element.Tag) -> str:
-    inputspec_div = problem.find('div', { 'class': 'input-specification' })
+  def _get_input_specification (self) -> str:
+    inputspec_div = self.scraped_content.find('div', { 'class': 'input-specification' })
     md = markdownify(str(inputspec_div)).strip()
     md = md[len('Input'):] # remove prefix
     return ProblemScraper._latexify(md)
   
-  @staticmethod
-  def _output_specification_from_problem (problem: element.Tag) -> str:
-    outputspec_div = problem.find('div', { 'class': 'output-specification' })
+  def _get_output_specification (self) -> str:
+    outputspec_div = self.scraped_content.find('div', { 'class': 'output-specification' })
     md = markdownify(str(outputspec_div)).strip()
     md = md[len('Output'):] # remove prefix
     return ProblemScraper._latexify(md)
@@ -156,3 +203,4 @@ if __name__ == '__main__':
   # scraper = ProblemScraper('https://codeforces.com/problemset/problem/4/A')
   scraper = ProblemScraper('https://codeforces.com/problemset/problem/1614/E')
   scraper.scrape()
+  print(scraper.problem.markdown())
