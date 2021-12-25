@@ -2,6 +2,8 @@
 
 import requests
 import sys
+import typing
+import itertools
 
 from bs4 import (
   BeautifulSoup,
@@ -9,13 +11,15 @@ from bs4 import (
 )
 from markdownify import markdownify
 
-sys.path.insert(0, '../')
-sys.path.insert(1, '../utility/')
+if __name__ == '__main__':
+  sys.path.insert(0, '../')
+  sys.path.insert(1, '../utility/')
 
-from utility.logging import Logger
+from utility.logger import (
+  context, info, debug, error
+)
+
 from utility.colors  import Color
-
-log = Logger()
 
 class TestCase:
   def __init__ (
@@ -25,6 +29,18 @@ class TestCase:
   ):
     self.input = input
     self.output = output
+  
+  def markdown (self) -> str:
+    md = f"""
+##### Input
+
+```{self.input}```
+
+##### Output
+
+```{self.output}```
+"""
+    return md
 
 class Problem:
   def __init__ (
@@ -41,22 +57,25 @@ class Problem:
     output_file: str = None,
     input_specification: str = None,
     output_specification: str = None,
+    testcases: typing.List[TestCase] = None,
     notes: str = None
   ):
     self.url = url
     self.id = id
     self.index = index
-    self.name = name,
-    self.time_limit = time_limit,
-    self.memory_limit = memory_limit,
-    self.input_file = input_file,
-    self.output_file = output_file,
-    self.statement = statement,
-    self.input_specification = input_specification,
-    self.output_specification = output_specification,
+    self.name = name
+    self.time_limit = time_limit
+    self.memory_limit = memory_limit
+    self.input_file = input_file
+    self.output_file = output_file
+    self.statement = statement
+    self.input_specification = input_specification
+    self.output_specification = output_specification
+    self.testcases = testcases
     self.notes = notes
+    self.type = 'codeforces'
   
-  def brief_info (self):
+  def brief_info (self) -> str:
     pretty = f"""
                Problem {self.id}/{self.index}
          Name: {self.name}
@@ -68,7 +87,11 @@ class Problem:
 """
     return pretty
   
-  def markdown (self):
+  def markdown (self) -> str:
+    testcase_md = \
+      '\n'.join(f'#### Testcase {index}\n{testcase.markdown()}'
+      for index, testcase in enumerate(self.testcases, start = 1))
+
     md = f"""
 # [{self.id}/{self.index} {self.name}]({self.url})
 
@@ -92,6 +115,10 @@ class Problem:
 
 {self.output_specification}
 
+### Testcases
+
+{testcase_md}
+
 ### Notes
 
 {self.notes}
@@ -108,15 +135,14 @@ class ProblemScraper:
     self.scraped_content: element.Tag = None
   
   def scrape (self) -> Problem:
-    log.info(f'Sending request to {self.url}')
-    r = requests.get(self.url)
+    debug(f'Sending request to {self.url}')
+    r = requests.get(self.url, allow_redirects = False)
     s = BeautifulSoup(r.text, features = 'lxml')
 
     if r.status_code != 200:
-      log.error(f'Request to {self.url} failed with status code: {r.status_code}')
+      error(f'Request to {self.url} failed with status code: {r.status_code}')
+      exit(1)
     
-    log.info('Parsing scraped content')
-
     self.scraped_content = s.find('div', {'class': 'problem-statement'})
     self.parse()
 
@@ -124,9 +150,11 @@ class ProblemScraper:
       Color.foreground_rgb(120, 200, 250, self.problem.brief_info())
     )
 
-    log.info('Problem Info:\n' + pretty_info)
+    info('Problem Info:\n' + pretty_info)
   
   def parse (self):
+    debug('Parsing scraped content')
+
     self.problem.index = self._get_index()
     self.problem.url = self.url
     self.problem.id = self._get_id()
@@ -138,6 +166,10 @@ class ProblemScraper:
     self.problem.statement = self._get_statement()
     self.problem.input_specification = self._get_input_specification()
     self.problem.output_specification = self._get_output_specification()
+    self.problem.testcases = self._get_testcases()
+    self.problem.notes = self._get_notes()
+
+    debug('Parsing complete')
   
   def _get_name (self) -> str:
     name_div = self.scraped_content.find('div', { 'class': 'title' })
@@ -193,6 +225,32 @@ class ProblemScraper:
     outputspec_div = self.scraped_content.find('div', { 'class': 'output-specification' })
     md = markdownify(str(outputspec_div)).strip()
     md = md[len('Output'):] # remove prefix
+    return ProblemScraper._latexify(md)
+  
+  def _get_testcases (self) -> typing.List[TestCase]:
+    testcase_div = self.scraped_content.find('div', { 'class': 'sample-test' })
+    
+    inputs = [
+      input.find('pre').text
+      for input in testcase_div.find_all('div', { 'class': 'input' })
+    ]
+
+    outputs = [
+      output.find('pre').text
+      for output in testcase_div.find_all('div', { 'class': 'output' })
+    ]
+
+    testcases = [
+      TestCase(input, output)
+      for input, output in itertools.zip_longest(inputs, outputs)
+    ]
+
+    return testcases
+  
+  def _get_notes (self) -> str:
+    notes_div = self.scraped_content.find('div', { 'class': 'note' })
+    md = markdownify(str(notes_div)).strip()
+    md = md[len('Note'):]
     return ProblemScraper._latexify(md)
   
   @staticmethod
