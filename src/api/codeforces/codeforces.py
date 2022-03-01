@@ -5,9 +5,9 @@ import typing
 import json
 
 from cfobject import (
-  Problem, ProblemStatistic,
+  Problem, ProblemStatistic, Submission,
   User,
-  problem_parse, problemstatistic_parse,
+  problem_parse, problemstatistic_parse, submission_parse,
   user_parse
 )
 
@@ -86,30 +86,8 @@ class CodeforcesAPI:
   def __init__ (self):
     pass
   
-  async def user_info (
-    self,
-    handles: typing.List[str]
-  ) -> typing.List[User]:
-    async def request () -> dict:
-      route = CodeforcesAPIRoute('user_info')
-      params = {
-        'handles': ';'.join(handles)
-      }
-      
-      async with aiohttp.ClientSession() as session:
-        async with session.get(route.get_url(), params = params) as r:
-          response = await r.json()
-      
-      return response
-    
-    response = await codeforces_api_call(request)
-    check_status(response)
-    
-    user_list = user_parse(response['result'])
-    return user_list
-  
   async def problemset_problems (
-    self,
+    self, *,
     tags: typing.List[str] = None,
     problemset_name: str = None
   ) -> typing.Tuple[typing.List[Problem], typing.List[ProblemStatistic]]:
@@ -124,9 +102,7 @@ class CodeforcesAPI:
 
       async with aiohttp.ClientSession() as session:
         async with session.get(route.get_url(), params = params) as r:
-          response = await r.json()
-      
-      return response
+          return await r.json()
     
     response = await codeforces_api_call(request)
     check_status(response)
@@ -134,27 +110,90 @@ class CodeforcesAPI:
     problems_list = problem_parse(response['result']['problems'])
     problemstatistics_list = problemstatistic_parse(response['result']['problemStatistics'])
     return problems_list, problemstatistics_list
+  
+  async def user_info (
+    self, *,
+    handles: typing.List[str]
+  ) -> typing.List[User]:
+    async def request () -> dict:
+      route = CodeforcesAPIRoute('user_info')
+      params = {
+        'handles': ';'.join(handles)
+      }
+      
+      async with aiohttp.ClientSession() as session:
+        async with session.get(route.get_url(), params = params) as r:
+          return await r.json()
+    
+    response = await codeforces_api_call(request)
+    check_status(response)
+    return user_parse(response['result'])
+  
+  async def user_ratedlist (
+    self, *,
+    contest_id: int = None,
+    active_only: bool = False
+  ) -> typing.List[User]:
+    async def request () -> dict:
+      route = CodeforcesAPIRoute('user_ratedlist')
+      params = {
+        'activeOnly': 'true' if active_only else 'false',
+        'contestId': contest_id
+      }
+
+      async with aiohttp.ClientSession() as session:
+        async with session.get(route.get_url(), params = params) as r:
+          return await r.json()
+    
+    response = await codeforces_api_call(request)
+    check_status(response)
+    return user_parse(response['result'])
+  
+  async def user_status (
+    self, *,
+    handle: str,
+    start_index: int = 1,
+    count: int = 1
+  ) -> typing.List[Submission]:
+    async def request () -> dict:
+      route = CodeforcesAPIRoute('user_status')
+      params = {
+        'handle': handle,
+        'from': start_index,
+        'count': count
+      }
+
+      async with aiohttp.ClientSession() as session:
+        async with session.get(route.get_url(), params = params) as r:
+          return await r.json()
+    
+    response = await codeforces_api_call(request)
+    check_status(response)
+    return submission_parse(response['result'])
+
+def main ():
+  async def async_main ():
+    API = CodeforcesAPI()
+
+    problemset_problems = await API.problemset_problems(tags = ['meet-in-the-middle', 'matrices'])
+    for problem, problemstatistic in zip(*problemset_problems):
+      print(problem)
+      print(problemstatistic)
+
+    user_info_list = await API.user_info(handles = ['4rrow', 'SlavicG', 'Etherite'])
+    for user in user_info_list:
+      print(user)
+    
+    user_ratedlist = await API.user_ratedlist(contest_id = 1642, active_only = True)
+    for user in user_ratedlist:
+      if user.handle == '4rrow':
+        print(user)
+    
+    user_status = await API.user_status(handle = '4rrow', start_index = 1, count = 1)
+    for status in user_status:
+      print(status)
+  
+  asyncio.run(async_main())
 
 if __name__ == '__main__':
-  api = CodeforcesAPI()
-  
-  async def main ():
-    user = await api.user_info(handles = ['4rrow', 'SlavicG', 'Etherite'])
-    problem = await api.problemset_problems(['meet-in-the-middle', 'matrices'])
-
-    for i in user:
-      print(i)
-    
-    print(problem[0][0])
-    print(problem[1][0])
-
-    # tasks = []
-    # task = asyncio.ensure_future(api.problemset_problems(['meet-in-the-middle', 'dp']))
-    # tasks.append(task)
-    # for i in range(3):
-    #   task = asyncio.ensure_future(api.user_info(handles = ['4rrow', 'SlavicG']))
-    #   tasks.append(task)
-    # r = await asyncio.gather(*tasks)
-    # return r
-  
-  asyncio.run(main())
+  main()
