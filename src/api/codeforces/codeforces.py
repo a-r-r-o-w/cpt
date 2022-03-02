@@ -5,10 +5,10 @@ import typing
 import json
 
 from cfobject import (
-  Problem, ProblemStatistic, Submission,
-  User,
-  problem_parse, problemstatistic_parse, submission_parse,
-  user_parse
+  BlogEntry, Problem, ProblemStatistic, RatingChange,
+  Submission, User,
+  problem_parse, problemstatistic_parse, ratingchange_parse,
+  submission_parse, user_parse, blogentry_parse
 )
 
 from cfexception import (
@@ -111,6 +111,24 @@ class CodeforcesAPI:
     problemstatistics_list = problemstatistic_parse(response['result']['problemStatistics'])
     return problems_list, problemstatistics_list
   
+  async def user_blogentries (
+    self, *,
+    handle: str
+  ) -> BlogEntry:
+    async def request () -> dict:
+      route = CodeforcesAPIRoute('user_blogs')
+      params = {
+        'handle': handle
+      }
+
+      async with aiohttp.ClientSession() as session:
+        async with session.get(route.get_url(), params = params) as r:
+          return await r.json()
+      
+    response = await codeforces_api_call(request)
+    check_status(response)
+    return blogentry_parse(response['result'])
+  
   async def user_info (
     self, *,
     handles: typing.List[str]
@@ -148,6 +166,24 @@ class CodeforcesAPI:
     response = await codeforces_api_call(request)
     check_status(response)
     return user_parse(response['result'])
+
+  async def user_rating (
+    self, *,
+    handle: str
+  ) -> RatingChange:
+    async def request () -> dict:
+      route = CodeforcesAPIRoute('user_rating')
+      params = {
+        'handle': handle
+      }
+
+      async with aiohttp.ClientSession() as session:
+        async with session.get(route.get_url(), params = params) as r:
+          return await r.json()
+      
+    response = await codeforces_api_call(request)
+    check_status(response)
+    return ratingchange_parse(response['result'])
   
   async def user_status (
     self, *,
@@ -192,6 +228,9 @@ def main ():
     user_status = await API.user_status(handle = '4rrow', start_index = 1, count = 1)
     for status in user_status:
       print(status)
+    
+    ratingchange = await API.user_rating(handle = '4rrow')
+    print(ratingchange[0])
   
   asyncio.run(async_main())
 

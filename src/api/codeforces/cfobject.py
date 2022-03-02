@@ -25,7 +25,7 @@ class Member (CodeforcesObject):
     self.handle = handle
     self.name = name
   
-  def __str__ (self):
+  def __str__ (self) -> str:
     member = f"""\
 Handle: {self.to_str(self.handle)}
   Name: {self.to_str(self.name)}
@@ -53,7 +53,7 @@ class Party (CodeforcesObject):
     self.room = room
     self.start_time_seconds = start_time_seconds
   
-  def __str__ (self):
+  def __str__ (self) -> str:
     party = f"""\
 Contest ID: {self.to_str(self.contest_id)}
    Members: [{', '.join(self.to_str(member) for member in self.members)}]
@@ -95,7 +95,7 @@ class Problem (CodeforcesObject):
 Rating: {self.to_str(self.rating)}
 Points: {self.to_str(self.points)}
   Type: {self.to_str(self.type)}
-  Tags: [{', '.join(self.to_str(tag) for tag in self.tags)}]
+  Tags: {self.to_str(self.tags)}
 Problemset Name: {self.to_str(self.problemset_name)}
 """
     return problem
@@ -174,7 +174,7 @@ class Submission (CodeforcesObject):
     self.memory_consumed_bytes = memory_consumed_bytes
     self.points = points
   
-  def __str__ (self):
+  def __str__ (self) -> str:
     submission = f"""\
         ID: {self.to_str(self.id)}
 Contest ID: {self.to_str(self.contest_id)}
@@ -259,6 +259,183 @@ Last online: {self.to_str(datetime.fromtimestamp(self.last_online_time_seconds))
 Title Photo: {self.to_str(self.title_photo)}
 """
     return user
+
+class BlogEntry (CodeforcesObject):
+  def __init__ (
+    self,
+    id: int,
+    original_locale: str,
+    creation_time_seconds: int,
+    author_handle: str,
+    title: str,
+    content: str,
+    locale: str,
+    modification_time_seconds: int,
+    allow_view_history: bool,
+    tags: typing.List[str],
+    rating: int
+  ):
+    self.id = id
+    self.original_locale = original_locale
+    self.creation_time_seconds = creation_time_seconds
+    self.author_handle = author_handle
+    self.title = title
+    self.content = content
+    self.locale = locale
+    self.modification_time_seconds = modification_time_seconds
+    self.allow_view_history = allow_view_history
+    self.tags = tags
+    self.rating = rating
+  
+  def __str__ (self) -> str:
+    blogentry = f"""\
+    ID: {self.to_str(self.id)}
+Author: {self.to_str(self.author_handle)}
+ Title: {self.to_str(self.title)}
+Rating: {self.to_str(self.rating)}
+
+{self.to_str(self.content)}
+
+Tags: {self.to_str(self.tags)}
+
+    Creation time: {self.to_str(datetime.fromtimestamp(self.creation_time_seconds))}
+Modification time: {self.to_str(datetime.fromtimestamp(self.modification_time_seconds))}
+     View history: {self.to_str(self.allow_view_history)}
+  Original Locale: {self.to_str(self.original_locale)}
+           Locale: {self.to_str(self.locale)}
+"""
+    return blogentry
+
+class Comment (CodeforcesObject):
+  def __init__ (
+    self,
+    id: int,
+    creation_time_seconds: int,
+    commentator_handle: str,
+    locale: str,
+    text: str,
+    rating: int,
+    parent_comment_id: int
+  ):
+    self.id = id
+    self.creation_time_seconds = creation_time_seconds
+    self.commentator_handle = commentator_handle
+    self.locale = locale
+    self.text = text
+    self.rating = rating
+    self.parent_comment_id = parent_comment_id
+  
+  def __str__ (self) -> str:
+    comment = f"""\
+Author: {self.to_str(self.commentator_handle)}
+Rating: {self.to_str(self.rating)}
+Locale: {self.to_str(self.locale)}
+
+Comment ID: {self.to_str(self.id)}
+ Parent ID: {self.to_str(self.parent_comment_id)}
+
+{self.to_str(self.text)}
+
+Creation time: {self.to_str(datetime.fromtimestamp(self.creation_time_seconds))}
+"""
+    return comment
+
+class RecentAction (CodeforcesObject):
+  def __init__ (
+    self,
+    time_seconds: int,
+    blog_entry: BlogEntry,
+    comment: Comment
+  ):
+    self.time_seconds = time_seconds
+    self.blog_entry = blog_entry
+    self.comment = comment
+  
+  def __str__ (self) -> str:
+    recentaction = f"""\
+Time: {self.to_str(datetime.fromtimestamp(self.time_seconds))}
+
+{self.to_str(self.blog_entry)}
+
+{self.to_str(self.comment)}
+"""
+    return recentaction
+
+class Contest (CodeforcesObject):
+  def __init__ (
+    self,
+    id: int,
+    locale: str,
+    type: str,
+    phase: str,
+    frozen: bool,
+    duration_seconds: int,
+    start_time_seconds: int,
+    relative_time_second: int,
+    prepared_by: str,
+    website_url: str,
+    description: str,
+    difficulty: int,
+    kind: str,
+    icpc_region: str,
+    country: str,
+    city: str,
+    season: str
+  ):
+    self.id = id
+    self.locale = locale
+    self.type = type
+    self.phase = phase
+    self.frozen = frozen
+    self.duration_seconds = duration_seconds
+    self.start_time_seconds = start_time_seconds
+    self.relative_time_second = relative_time_second
+    self.prepared_by = prepared_by
+    self.website_url = website_url
+    self.description = description
+    self.difficulty = difficulty
+    self.kind = kind
+    self.icpc_region = icpc_region
+    self.country = country
+    self.city = city
+    self.season = season
+  
+  def __str__ (self) -> str:
+    pass
+
+class RatingChange (CodeforcesObject):
+  def __init__ (
+    self,
+    contest_id: int,
+    contest_name: str,
+    handle: str,
+    rank: int,
+    rating_update_time_seconds: int,
+    old_rating: int,
+    new_rating: int
+  ):
+    self.contest_id = contest_id
+    self.contest_name = contest_name
+    self.handle = handle
+    self.rank = rank
+    self.rating_update_time_seconds = rating_update_time_seconds
+    self.old_rating = old_rating
+    self.new_rating = new_rating
+
+  def __str__ (self) -> str:
+    rating_change = f"""\
+Handle: {self.to_str(self.handle)}
+  Rank: {self.to_str(self.rank)}
+
+  Contest ID: {self.to_str(self.contest_id)}
+Contest Name: {self.to_str(self.contest_name)}
+
+Old Rating: {self.to_str(self.old_rating)}
+New Rating: {self.to_str(self.new_rating)}
+
+Rating Update Time: {self.to_str(datetime.fromtimestamp(self.rating_update_time_seconds))}
+"""
+    return rating_change
 
 def member_parse (members: typing.List[dict]) -> typing.List[Member]:
   member_list = []
@@ -376,6 +553,25 @@ def submission_parse (submissions: typing.List[dict]) -> typing.List[Submission]
   
   return submission_list
 
+def ratingchange_parse (ratingchanges: typing.List[dict]) -> typing.List[RatingChange]:
+  ratingchange_list = []
+
+  for ratingchange in ratingchanges:
+    contest_id = _try_typecast(ratingchange.get('contestId'), int, 'NA')
+    rank = _try_typecast(ratingchange.get('rank'), int, 'NA')
+    old_rating = _try_typecast(ratingchange.get('oldRating'), int, 'NA')
+    new_rating = _try_typecast(ratingchange.get('newRating'), int, 'NA')
+    rating_update_time_seconds = _try_typecast(ratingchange.get('ratingUpdateTimeSeconds'), int, 0)
+    contest_name = ratingchange.get('contestName')
+    handle = ratingchange.get('handle')
+
+    ratingchange_list.append(RatingChange(
+      contest_id, contest_name, handle, rank,
+      rating_update_time_seconds, old_rating, new_rating
+    ))
+  
+  return ratingchange_list
+
 def user_parse (users: typing.List[dict]) -> typing.List[User]:
   user_list = []
 
@@ -408,3 +604,19 @@ def user_parse (users: typing.List[dict]) -> typing.List[User]:
     ))
 
   return user_list
+
+def blogentry_parse (blogentries: typing.List[dict]) -> typing.List[BlogEntry]:
+  blogentry_list = []
+
+  for blogentry in blogentries:
+    id = blogentry.get('id')
+    original_locale = blogentry.get('original_locale')
+    creation_time_seconds = blogentry.get('creation_time_seconds')
+    author_handle = blogentry.get('author_handle')
+    title = blogentry.get('title')
+    content = blogentry.get('content')
+    locale = blogentry.get('locale')
+    modification_time_seconds = blogentry.get('modification_time_seconds')
+    allow_view_history = blogentry.get('allow_view_history')
+    tags = blogentry.get('tags')
+    rating = blogentry.get('rating')
