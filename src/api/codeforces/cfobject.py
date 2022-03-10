@@ -1,4 +1,6 @@
 import typing
+import json
+
 from datetime import datetime
 
 def _try_typecast (value: typing.Any, to_type: typing.Type, default: typing.Any = None) -> typing.Any:
@@ -54,9 +56,12 @@ class Party (CodeforcesObject):
     self.start_time_seconds = start_time_seconds
   
   def __str__ (self) -> str:
+    newline = '\n'
     party = f"""\
 Contest ID: {self.to_str(self.contest_id)}
-   Members: [{', '.join(self.to_str(member) for member in self.members)}]
+
+Members:
+{newline.join(self.to_str(member) for member in self.members)}
 
   Team ID: {self.to_str(self.team_id)}
 Team Name: {self.to_str(self.team_name)}
@@ -190,7 +195,7 @@ Author:
 {self.to_str(self.author)}
 
 Creation Time: {self.to_str(datetime.fromtimestamp(self.creation_time_seconds))}
-Relative Time: {self.to_str(datetime.fromtimestamp(self.relative_time_seconds))}
+Relative Time: {self.to_str(self.relative_time_seconds)}
 """
     return submission
 
@@ -365,13 +370,13 @@ class Contest (CodeforcesObject):
   def __init__ (
     self,
     id: int,
-    locale: str,
+    name: str,
     type: str,
     phase: str,
     frozen: bool,
     duration_seconds: int,
     start_time_seconds: int,
-    relative_time_second: int,
+    relative_time_seconds: int,
     prepared_by: str,
     website_url: str,
     description: str,
@@ -383,13 +388,13 @@ class Contest (CodeforcesObject):
     season: str
   ):
     self.id = id
-    self.locale = locale
+    self.name = name
     self.type = type
     self.phase = phase
     self.frozen = frozen
     self.duration_seconds = duration_seconds
     self.start_time_seconds = start_time_seconds
-    self.relative_time_second = relative_time_second
+    self.relative_time_seconds = relative_time_seconds
     self.prepared_by = prepared_by
     self.website_url = website_url
     self.description = description
@@ -401,7 +406,29 @@ class Contest (CodeforcesObject):
     self.season = season
   
   def __str__ (self) -> str:
-    pass
+    contest = f"""\
+  ID: {self.to_str(self.id)}
+Name: {self.to_str(self.name)}
+Type: {self.to_str(self.type)}
+
+ Phase: {self.to_str(self.phase)}
+Frozen: {self.to_str(self.frozen)}
+
+   Start Time: {self.to_str(self.to_str(datetime.fromtimestamp(self.start_time_seconds)))}
+Relative Time: {self.to_str(self.relative_time_seconds)}
+ Duration (s): {self.to_str(self.duration_seconds)}
+
+Prepared By: {self.to_str(self.prepared_by)}
+Description: {self.to_str(self.description)}
+Website URL: {self.to_str(self.website_url)}
+ Difficulty: {self.to_str(self.difficulty)}
+
+ICPC Region: {self.to_str(self.icpc_region)}
+     Season: {self.to_str(self.season)}
+       Kind: {self.to_str(self.kind)}
+   Location: {self.to_str(self.city)}, {self.to_str(self.country)}
+"""
+    return contest
 
 class RatingChange (CodeforcesObject):
   def __init__ (
@@ -437,6 +464,90 @@ Rating Update Time: {self.to_str(datetime.fromtimestamp(self.rating_update_time_
 """
     return rating_change
 
+class Hack (CodeforcesObject):
+  def __init__ (
+    self,
+    id: int,
+    creation_time_seconds: int,
+    hacker: Party,
+    defender: Party,
+    verdict: str,
+    problem: Problem,
+    test: str,
+    judge_protocol: dict
+  ):
+    self.id = id
+    self.creation_time_seconds = creation_time_seconds
+    self.hacker = hacker
+    self.defender = defender
+    self.verdict = verdict
+    self.problem = problem
+    self.test = test
+    self.judge_protocol = judge_protocol
+  
+  def __str__ (self) -> str:
+    hack = f"""\
+ID: {self.to_str(self.id)}
+Creation Time: {self.to_str(datetime.fromtimestamp(self.creation_time_seconds))}
+
+Hacker:
+{self.to_str(self.hacker)}
+
+Defender:
+{self.to_str(self.defender)}
+
+Problem:
+{self.to_str(self.problem)}
+
+Verdict: {self.to_str(self.verdict)}
+   Test: {self.to_str(self.test)}
+
+Judge Protocol: {self.to_str(json.dumps(self.judge_protocol, indent = 2))}
+"""
+    return hack
+
+class RanklistRow (CodeforcesObject):
+  def __init__ (
+    self,
+    party: Party,
+    rank: int,
+    points: float,
+    penalty: int,
+    successful_hack_count: int,
+    unsuccessful_hack_count: int,
+    problem_results: typing.List[ProblemResult],
+    last_submission_time_seconds: int
+  ):
+    self.party = party
+    self.rank = rank
+    self.points = points
+    self.penalty = penalty
+    self.successful_hack_count = successful_hack_count
+    self.unsuccessful_hack_count = unsuccessful_hack_count
+    self.problem_results = problem_results
+    self.last_submission_time_seconds = last_submission_time_seconds
+  
+  def __str__ (self) -> str:
+    ranklist_row = f"""\
+Party:
+{self.to_str(self.party)}
+
+   Rank: {self.to_str(self.rank)}
+ Points: {self.to_str(self.points)}
+Penalty: {self.to_str(self.penalty)}
+  Hacks: +{self.to_str(self.successful_hack_count)}, -{self.to_str(self.unsuccessful_hack_count)}
+
+Problem Results:
+{self.to_str(self.problem_results)}
+
+Last Submission Time: {
+  self.to_str(datetime.fromtimestamp(self.last_submission_time_seconds))
+  if self.last_submission_time_seconds != -1
+  else 'NA'
+}
+"""
+    return ranklist_row
+
 def member_parse (members: typing.List[dict]) -> typing.List[Member]:
   member_list = []
 
@@ -452,11 +563,11 @@ def party_parse (parties: typing.List[dict]) -> typing.List[Party]:
   party_list = []
 
   for party in parties:
-    contest_id = _try_typecast(party.get('contestId', int, 'NA'))
+    contest_id = _try_typecast(party.get('contestId'), int, 'NA')
     room = _try_typecast(party.get('room'), int, 'NA')
     start_time_seconds = _try_typecast(party.get('startTimeSeconds'), int, 'NA')
     team_id = _try_typecast(party.get('teamId'), int, 'NA')
-    members = member_parse([party.get('members')])[0]
+    members = member_parse(party.get('members'))
     participant_type = party.get('participantType')
     team_name = party.get('teamName')
     ghost = party.get('ghost')
@@ -525,13 +636,13 @@ def submission_parse (submissions: typing.List[dict]) -> typing.List[Submission]
 
   for submission in submissions:
     problem = None
-    party = None
+    author = None
     
     if submission.get('problem') is not None:
       problem = problem_parse([submission.get('problem')])[0]
     
-    if submission.get('party') is not None:
-      party = party_parse([submission.get('party')])[0]
+    if submission.get('author') is not None:
+      author = party_parse([submission.get('author')])[0]
     
     contest_id = _try_typecast(submission.get('contestId'), int, 'NA')
     points = _try_typecast(submission.get('points'), float, 0.0)
@@ -547,38 +658,19 @@ def submission_parse (submissions: typing.List[dict]) -> typing.List[Submission]
 
     submission_list.append(Submission(
       id, contest_id, creation_time_seconds, relative_time_seconds, problem,
-      party, programming_language, verdict, testset, passed_test_count,
+      author, programming_language, verdict, testset, passed_test_count,
       time_consumed_millis, memory_consumed_bytes, points
     ))
   
   return submission_list
 
-def ratingchange_parse (ratingchanges: typing.List[dict]) -> typing.List[RatingChange]:
-  ratingchange_list = []
-
-  for ratingchange in ratingchanges:
-    contest_id = _try_typecast(ratingchange.get('contestId'), int, 'NA')
-    rank = _try_typecast(ratingchange.get('rank'), int, 'NA')
-    old_rating = _try_typecast(ratingchange.get('oldRating'), int, 'NA')
-    new_rating = _try_typecast(ratingchange.get('newRating'), int, 'NA')
-    rating_update_time_seconds = _try_typecast(ratingchange.get('ratingUpdateTimeSeconds'), int, 0)
-    contest_name = ratingchange.get('contestName')
-    handle = ratingchange.get('handle')
-
-    ratingchange_list.append(RatingChange(
-      contest_id, contest_name, handle, rank,
-      rating_update_time_seconds, old_rating, new_rating
-    ))
-  
-  return ratingchange_list
-
 def user_parse (users: typing.List[dict]) -> typing.List[User]:
   user_list = []
 
   for user in users:
-    contribution = _try_typecast(user.get('contribution'), int, 'NA')
-    rating = _try_typecast(user.get('rating'), int, 'NA')
-    max_rating = _try_typecast(user.get('maxRating'), int, 'NA')
+    contribution = int(user.get('contribution'))
+    rating = int(user.get('rating'))
+    max_rating = int(user.get('maxRating'))
     handle = user.get('handle')
     email = user.get('email')
     vk_id = user.get('vkId')
@@ -609,14 +701,167 @@ def blogentry_parse (blogentries: typing.List[dict]) -> typing.List[BlogEntry]:
   blogentry_list = []
 
   for blogentry in blogentries:
-    id = blogentry.get('id')
-    original_locale = blogentry.get('original_locale')
-    creation_time_seconds = blogentry.get('creation_time_seconds')
-    author_handle = blogentry.get('author_handle')
+    id = int(blogentry.get('id'))
+    original_locale = blogentry.get('originalLocale')
+    creation_time_seconds = int(blogentry.get('creationTimeSeconds'))
+    author_handle = blogentry.get('authorHandle')
     title = blogentry.get('title')
     content = blogentry.get('content')
     locale = blogentry.get('locale')
-    modification_time_seconds = blogentry.get('modification_time_seconds')
-    allow_view_history = blogentry.get('allow_view_history')
+    modification_time_seconds = int(blogentry.get('modificationTimeSeconds'))
+    allow_view_history = blogentry.get('allowViewHistory')
     tags = blogentry.get('tags')
-    rating = blogentry.get('rating')
+    rating = int(blogentry.get('rating'))
+
+    blogentry_list.append(BlogEntry(
+      id, original_locale, creation_time_seconds, author_handle,
+      title, content, locale, modification_time_seconds,
+      allow_view_history, tags, rating
+    ))
+  
+  return blogentry_list
+
+def comment_parse (comments: typing.List[dict]) -> typing.List[Comment]:
+  comment_list = []
+
+  for comment in comments:
+    parent_comment_id = _try_typecast(comment.get('parentCommentId'), int, 'NA')
+    id = int(comment.get('id'))
+    creation_time_seconds = int(comment.get('creationTimeSeconds'))
+    commentator_handle = comment.get('commentatorHandle')
+    locale = comment.get('locale')
+    text = comment.get('text')
+    rating = int(comment.get('rating'))
+
+    comment_list.append(Comment(
+      id, creation_time_seconds, commentator_handle,
+      locale, text, rating, parent_comment_id
+    ))
+  
+  return comment_list
+
+def recentaction_parse (recentactions: typing.List[dict]) -> typing.List[RecentAction]:
+  recentaction_list = []
+
+  for recentaction in recentactions:
+    comment = None
+    blog_entry = None
+
+    if recentaction.get('comment') is not None:
+      comment = comment_parse([recentaction.get('comment')])[0]
+    if recentaction.get('blogEntry') is not None:
+      blog_entry = blogentry_parse([recentaction.get('blogEntry')])[0]
+    
+    time_seconds = int(recentaction.get('timeSeconds'))
+
+    recentaction_list.append(RecentAction(
+      time_seconds, blog_entry, comment
+    ))
+  
+  return recentaction_list
+
+def contest_parse (contests: typing.List[dict]) -> typing.List[Contest]:
+  contest_list = []
+
+  for contest in contests:
+    start_time_seconds = _try_typecast(contest.get('startTimeSeconds'), int, 'NA')
+    relative_time_seconds = _try_typecast(contest.get('relativeTimeSeconds'), int, 'NA')
+    difficulty = _try_typecast(contest.get('difficulty'), int, 'NA')
+    id = int(contest.get('id'))
+    name = contest.get('name')
+    type = contest.get('type')
+    phase = contest.get('phase')
+    frozen = contest.get('frozen')
+    duration_seconds = contest.get('durationSeconds')
+    prepared_by = contest.get('preparedBy')
+    website_url = contest.get('websiteUrl')
+    description = contest.get('description')
+    kind = contest.get('kind')
+    icpc_region = contest.get('icpcRegion')
+    country = contest.get('country')
+    city = contest.get('city')
+    season = contest.get('season')
+
+    contest_list.append(Contest(
+      id, name, type, phase, frozen, duration_seconds,
+      start_time_seconds, relative_time_seconds,
+      prepared_by, website_url, description, difficulty,
+      kind, icpc_region, country, city, season
+    ))
+  
+  return contest_list
+
+def ratingchange_parse (ratingchanges: typing.List[dict]) -> typing.List[RatingChange]:
+  ratingchange_list = []
+
+  for ratingchange in ratingchanges:
+    contest_id = _try_typecast(ratingchange.get('contestId'), int, 'NA')
+    rank = _try_typecast(ratingchange.get('rank'), int, 'NA')
+    old_rating = _try_typecast(ratingchange.get('oldRating'), int, 'NA')
+    new_rating = _try_typecast(ratingchange.get('newRating'), int, 'NA')
+    rating_update_time_seconds = _try_typecast(ratingchange.get('ratingUpdateTimeSeconds'), int, 0)
+    contest_name = ratingchange.get('contestName')
+    handle = ratingchange.get('handle')
+
+    ratingchange_list.append(RatingChange(
+      contest_id, contest_name, handle, rank,
+      rating_update_time_seconds, old_rating, new_rating
+    ))
+  
+  return ratingchange_list
+
+def hack_parse (hacks: typing.List[dict]) -> typing.List[Hack]:
+  hack_list = []
+
+  for hack in hacks:
+    hacker = None
+    defender = None
+    problem = None
+
+    if hack.get('hacker') is not None:
+      hacker = party_parse([hack.get('hacker')])[0]
+    if hack.get('defender') is not None:
+      defender = party_parse([hack.get('defender')])[0]
+    if hack.get('problem') is not None:
+      problem = problem_parse([hack.get('problem')])[0]
+    
+    id = int(hack.get('id'))
+    creation_time_seconds = int(hack.get('creationTimeSeconds'))
+    verdict = hack.get('verdict')
+    test = hack.get('test')
+    judge_protocol = hack.get('judgeProtocol')
+
+    hack_list.append(Hack(
+      id, creation_time_seconds, hacker, defender,
+      verdict, problem, test, judge_protocol
+    ))
+  
+  return hack_list
+
+def ranklistrow_parse (ranklistrows: typing.List[dict]) -> typing.List[RanklistRow]:
+  ranklistrow_list = []
+
+  for ranklistrow in ranklistrows:
+    party = None
+    problem_results = []
+
+    if ranklistrow.get('party') is not None:
+      party = party_parse([ranklistrow.get('party')])[0]
+    if ranklistrow.get('problemResult') is not None:
+      problem_results = problemresult_parse(ranklistrow.get('problemResult'))
+    
+    last_submission_time_seconds = \
+      _try_typecast(ranklistrow.get('lastSubmissionTimeSeconds'), int, -1)
+    rank = int(ranklistrow.get('rank'))
+    points = float(ranklistrow.get('points'))
+    penalty = int(ranklistrow.get('penalty'))
+    successful_hack_count = int(ranklistrow.get('successfulHackCount'))
+    unsuccessful_hack_count = int(ranklistrow.get('unsuccessfulHackCount'))
+
+    ranklistrow_list.append(RanklistRow(
+      party, rank, points, penalty,
+      successful_hack_count, unsuccessful_hack_count,
+      problem_results, last_submission_time_seconds
+    ))
+
+  return ranklistrow_list
