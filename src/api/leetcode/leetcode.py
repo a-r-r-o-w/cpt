@@ -2,13 +2,13 @@ import asyncio
 import aiohttp
 import ratelimit
 
-import lcgraphql
-
-from lcobject import (
-  Problem,
+from .lcgraphql import get_object
+from .lcobject import (
+  Problem
+)
+from .lcutils import (
   problem_parse
 )
-
 
 class LeetcodeAPI:
   __base_url = 'https://leetcode.com/'
@@ -34,22 +34,17 @@ class LeetcodeAPI:
     self.session = aiohttp.ClientSession()
     self.headers = {}
     self.csrf = None
+  
+  def __del__ (self):
+    loop = asyncio.get_event_loop()
+    if loop.is_running():
+      loop.create_task(self.session.close())
+    else:
+      loop.run_until_complete(self.session.close())
 
   async def question_data (
     self, *,
-    title: str
+    slug: str
   ) -> Problem:
-    obj = lcgraphql.get_object('question_data', {'titleSlug': title})
+    obj = get_object('question_data', {'titleSlug': slug})
     return problem_parse((await self.call(obj)).get('data').get('question'))
-
-if __name__ == '__main__':
-  async def main ():
-    api = LeetcodeAPI()
-    
-    # problem = await api.question_data(title = 'divide-two-integers')
-    problem = await api.question_data(title = 'minimum-obstacle-removal-to-reach-corner')
-    print(problem.to_markdown())
-
-    await api.session.close()
-  
-  asyncio.run(main())
