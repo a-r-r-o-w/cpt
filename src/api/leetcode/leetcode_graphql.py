@@ -80,6 +80,7 @@ lcgraphql_objects = {
   }
 }
 
+
 def get_object (name: str, variables: dict) -> str:
   obj = lcgraphql_objects.get(name)
   if obj is None:

@@ -8,6 +8,7 @@ from .leetcode_object import (
 )
 from .leetcode_constants import leetcode_urls
 
+
 def problem_parse (data: dict):
   id = int(data.get('questionId'))
   frontend_id = int(data.get('questionFrontendId'))
@@ -38,12 +39,14 @@ def problem_parse (data: dict):
     acceptance_rate, hints, similar_problems
   )
 
+
 def problem_url_parse (url: str) -> ProblemURL:
   if not url.startswith(leetcode_urls.get('problems')):
     raise ValueError(f'problem url must start with "{leetcode_urls.get("problems")}"')
   urlsplit = urllib.parse.urlsplit(url)
   slug = re.search(r'/problems/([a-zA-z0-9\-]+)', urlsplit.path).group(1)
   return ProblemURL(slug)
+
 
 def problem_to_markdown (problem: Problem):
   newline = '\n'

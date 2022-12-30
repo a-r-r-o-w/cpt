@@ -3,10 +3,14 @@ import typing
 from .leetcode_constants import leetcode_urls
 
 class LeetcodeObject:
+  """Represents a Leetcode Object"""
+
   def __repr__ (self):
     return f'<{self.__class__.__name__}>'
 
 class Problem (LeetcodeObject):
+  """Represents a Leetcode Problem Object"""
+
   def __init__ (
     self,
     id: int,
@@ -42,7 +46,10 @@ class Problem (LeetcodeObject):
   def __repr__ (self):
     return f'<{self.__class__.__name__} [{self.frontend_id} - {self.title}]>'
 
+
 class ProblemURL (LeetcodeObject):
+  """Represents a Leetcode Problem URL Object"""
+  
   def __init__ (self, slug: str):
     self.slug = slug
     self.url = leetcode_urls.get('problems') + self.slug

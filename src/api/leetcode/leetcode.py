@@ -10,6 +10,7 @@ from .leetcode_utils import (
   problem_parse
 )
 
+
 class LeetcodeAPI:
   __base_url = 'https://leetcode.com/'
   __api_url = __base_url + 'graphql'

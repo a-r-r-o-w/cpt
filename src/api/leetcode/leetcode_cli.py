@@ -8,7 +8,7 @@ from .leetcode_utils import (
 from utils import cd
 
 class LeetcodeCLI:
-  """LeetCode CLI"""
+  """LeetCode Command Line Interface"""
 
   def __init__ (self):
     self._api = LeetcodeAPI()
