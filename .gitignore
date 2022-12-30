@@ -1,4 +1,9 @@
-.cpt-venv/
+# python
+.venv/
 __pycache__/
+
+# vscode
 .vscode/
+
+# env
 .env

@@ -1,7 +1,7 @@
 import os
 
 from .leetcode import LeetcodeAPI
-from .lcutils import (
+from .leetcode_utils import (
   problem_url_parse,
   problem_to_markdown
 )

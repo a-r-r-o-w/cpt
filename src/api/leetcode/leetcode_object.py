@@ -1,6 +1,6 @@
 import typing
 
-from .lcconstants import leetcode_urls
+from .leetcode_constants import leetcode_urls
 
 class LeetcodeObject:
   def __repr__ (self):

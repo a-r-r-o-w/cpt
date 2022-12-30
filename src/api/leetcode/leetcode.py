@@ -2,11 +2,11 @@ import asyncio
 import aiohttp
 import ratelimit
 
-from .lcgraphql import get_object
-from .lcobject import (
+from .leetcode_graphql import get_object
+from .leetcode_object import (
   Problem
 )
-from .lcutils import (
+from .leetcode_utils import (
   problem_parse
 )
 

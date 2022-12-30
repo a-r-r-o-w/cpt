@@ -1,12 +1,13 @@
+#!/usr/bin/env python3
+
 import asyncio
 import fire
 
-from api.leetcode.cli import LeetcodeCLI
+from api.leetcode.leetcode_cli import LeetcodeCLI
 
 class CLI:
   def __init__ (self):
     self.leetcode = LeetcodeCLI()
-    self.lc = self.leetcode
 
 if __name__ == '__main__':
   fire.core.Display = lambda lines, out: print(*lines, file = out)

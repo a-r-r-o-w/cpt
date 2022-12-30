@@ -3,10 +3,10 @@ import markdownify
 import re
 import urllib.parse
 
-from .lcobject import (
+from .leetcode_object import (
   Problem, ProblemURL
 )
-from .lcconstants import leetcode_urls
+from .leetcode_constants import leetcode_urls
 
 def problem_parse (data: dict):
   id = int(data.get('questionId'))
