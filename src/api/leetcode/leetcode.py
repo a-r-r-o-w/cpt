@@ -1,6 +1,7 @@
 import asyncio
 import aiohttp
 import ratelimit
+import typing
 
 from .leetcode_graphql import get_object
 from .leetcode_object import (
@@ -12,17 +13,19 @@ from .leetcode_utils import (
 
 
 class LeetcodeAPI:
+  """Leetcode API"""
+
   __base_url = 'https://leetcode.com/'
   __api_url = __base_url + 'graphql'
 
   @ratelimit.limits(calls = 1, period = 2)
-  async def call (self, data):
+  async def call (self, data: typing.Dict[str, str]) -> typing.Dict[str, str]:
     if self.csrf is None:
       await self.get_csrf()
     async with self.session.post(self.__api_url, data = data, headers = self.headers) as r:
       return await r.json()
 
-  async def get_csrf (self):
+  async def get_csrf (self) -> None:
     async with self.session.get(self.__base_url) as r:
       self.csrf = r.cookies.get('csrftoken').value
       self.headers.update({
@@ -31,7 +34,7 @@ class LeetcodeAPI:
         'X-CSRFToken': self.csrf
       })
 
-  def __init__ (self):
+  def __init__ (self) -> None:
     self.session = aiohttp.ClientSession()
     self.headers = {}
     self.csrf = None

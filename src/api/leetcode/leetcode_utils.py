@@ -1,6 +1,7 @@
 import json
 import markdownify
 import re
+import typing
 import urllib.parse
 
 from .leetcode_object import (
@@ -9,7 +10,7 @@ from .leetcode_object import (
 from .leetcode_constants import leetcode_urls
 
 
-def problem_parse (data: dict):
+def problem_parse (data: typing.Dict[str, str]) -> None:
   id = int(data.get('questionId'))
   frontend_id = int(data.get('questionFrontendId'))
   title = data.get('title')
@@ -48,7 +49,7 @@ def problem_url_parse (url: str) -> ProblemURL:
   return ProblemURL(slug)
 
 
-def problem_to_markdown (problem: Problem):
+def problem_to_markdown (problem: Problem) -> None:
   newline = '\n'
   md = f"""\
 # [{problem.frontend_id}] {problem.title}

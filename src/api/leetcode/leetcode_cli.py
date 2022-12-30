@@ -10,7 +10,7 @@ from utils import cd
 class LeetcodeCLI:
   """LeetCode Command Line Interface"""
 
-  def __init__ (self):
+  def __init__ (self) -> None:
     self._api = LeetcodeAPI()
   
   async def clone (self, url: str, *, path: str = '.') -> None:

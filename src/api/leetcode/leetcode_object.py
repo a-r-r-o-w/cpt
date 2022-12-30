@@ -5,11 +5,11 @@ from .leetcode_constants import leetcode_urls
 class LeetcodeObject:
   """Represents a Leetcode Object"""
 
-  def __repr__ (self):
+  def __repr__ (self) -> str:
     return f'<{self.__class__.__name__}>'
 
 class Problem (LeetcodeObject):
-  """Represents a Leetcode Problem Object"""
+  """Represents a Leetcode Problem"""
 
   def __init__ (
     self,
@@ -27,7 +27,7 @@ class Problem (LeetcodeObject):
     acceptance_rate: float,
     hints: typing.List[str],
     similar_problems: typing.List[dict]
-  ):
+  ) -> None:
     self.id = id
     self.frontend_id = frontend_id
     self.title = title
@@ -43,13 +43,13 @@ class Problem (LeetcodeObject):
     self.hints = hints
     self.similar_problems = similar_problems
   
-  def __repr__ (self):
+  def __repr__ (self) -> str:
     return f'<{self.__class__.__name__} [{self.frontend_id} - {self.title}]>'
 
 
 class ProblemURL (LeetcodeObject):
-  """Represents a Leetcode Problem URL Object"""
-  
+  """Represents a Leetcode Problem URL"""
+
   def __init__ (self, slug: str):
     self.slug = slug
     self.url = leetcode_urls.get('problems') + self.slug
