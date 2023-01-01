@@ -42,7 +42,8 @@ def problem_parse (data: typing.Dict[str, str]) -> None:
 
 
 def problem_url_parse (url: str) -> ProblemURL:
-  if not url.startswith(leetcode_urls.get('problems')):
+  if not url.startswith(leetcode_urls.get('problems')) and \
+     not url.startswith(leetcode_urls.get('contest')):
     raise ValueError(f'problem url must start with "{leetcode_urls.get("problems")}"')
   urlsplit = urllib.parse.urlsplit(url)
   slug = re.search(r'/problems/([a-zA-z0-9\-]+)', urlsplit.path).group(1)
