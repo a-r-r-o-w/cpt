@@ -39,14 +39,14 @@ class LeetcodeAPI:
     self.headers = {}
     self.csrf = None
   
-  def __del__ (self):
+  def __del__ (self) -> None:
     loop = asyncio.get_event_loop()
     if loop.is_running():
       loop.create_task(self.session.close())
     else:
       loop.run_until_complete(self.session.close())
 
-  async def question_data (
+  async def get_problem_data (
     self, *,
     slug: str
   ) -> Problem:
