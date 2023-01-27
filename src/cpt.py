@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
-import asyncio
 import fire
 
+from api.cses.cses_cli import CSESCLI
 from api.leetcode.leetcode_cli import LeetcodeCLI
 
 class CLI:
   def __init__ (self):
+    self.cses = CSESCLI()
     self.leetcode = LeetcodeCLI()
 
 if __name__ == '__main__':

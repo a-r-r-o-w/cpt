@@ -1,6 +1,6 @@
 import asyncio
 import aiohttp
-import ratelimit
+import aiolimiter
 import typing
 
 from .leetcode_graphql import get_object
@@ -18,24 +18,26 @@ class LeetcodeAPI:
   __base_url = 'https://leetcode.com/'
   __api_url = __base_url + 'graphql'
 
-  @ratelimit.limits(calls = 1, period = 2)
   async def call (self, data: typing.Dict[str, str]) -> typing.Dict[str, str]:
     if self.csrf is None:
       await self.get_csrf()
-    async with self.session.post(self.__api_url, data = data, headers = self.headers) as r:
-      return await r.json()
+    async with self.limiter:
+      async with self.session.post(self.__api_url, data = data, headers = self.headers) as r:
+        return await r.json()
 
   async def get_csrf (self) -> None:
-    async with self.session.get(self.__base_url) as r:
-      self.csrf = r.cookies.get('csrftoken').value
-      self.headers.update({
-        'Referer': self.__base_url,
-        'Content-Type': 'application/json',
-        'X-CSRFToken': self.csrf
-      })
+    async with self.limiter:
+      async with self.session.get(self.__base_url) as r:
+        self.csrf = r.cookies.get('csrftoken').value
+        self.headers.update({
+          'Referer': self.__base_url,
+          'Content-Type': 'application/json',
+          'X-CSRFToken': self.csrf
+        })
 
   def __init__ (self) -> None:
     self.session = aiohttp.ClientSession()
+    self.limiter = aiolimiter.AsyncLimiter(1, 2)
     self.headers = {}
     self.csrf = None
   

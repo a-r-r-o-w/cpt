@@ -1,6 +1,6 @@
 import asyncio
 import aiohttp
-import ratelimit
+import aiolimiter
 import typing
 
 from .cses_constants import cses_urls
@@ -15,13 +15,14 @@ from .cses_utils import (
 class CSESAPI:
   """CSES API"""
 
-  @ratelimit.limits(calls = 1, period = 2)
   async def call (self, url: str) -> typing.Dict[str, str]:
-    async with self.session.get(url, headers = self.headers) as r:
-      return await r.text()
+    async with self.limiter:
+      async with self.session.get(url, headers = self.headers) as r:
+        return await r.text()
 
   def __init__ (self) -> None:
     self.session = aiohttp.ClientSession()
+    self.limiter = aiolimiter.AsyncLimiter(1, 2)
     self.headers = {}
   
   def __del__ (self) -> None:
