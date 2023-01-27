@@ -1,9 +1,9 @@
 import json
-import markdownify
 import re
 import typing
 import urllib.parse
 
+from utils import CustomMarkdownConverter
 from .leetcode_object import (
   Problem, ProblemURL
 )
@@ -20,7 +20,7 @@ def problem_parse (data: typing.Dict[str, str]) -> None:
   dislikes = data.get('dislikes')
   
   content = data.get('content').strip().replace('<p>', '').replace('&nbsp;', '').replace('</p>', '')
-  statement = markdownify.markdownify(content)
+  statement = CustomMarkdownConverter(sup_symbol = '^').convert(content)
   
   tags = []
   for tag in data.get('topicTags'):
@@ -61,20 +61,20 @@ def problem_to_markdown (problem: Problem) -> None:
 
 {problem.statement}
 
-<br>
+<br />
 
 ### Hints
 
 {newline.join('- ' + hint for hint in problem.hints) if problem.hints else 'None'}
 
-<br>
+<br />
 
 ### Solution
 
 ```
 ```
 
-<br>
+<br />
 
 ### Statistics
 
@@ -84,7 +84,7 @@ def problem_to_markdown (problem: Problem) -> None:
 - likes: {problem.likes}
 - dislikes: {problem.dislikes}
 
-<br>
+<br />
 
 ### Similar Problems
 

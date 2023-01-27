@@ -1,5 +1,4 @@
-import os
-
+from utils import cd
 from .leetcode import LeetcodeAPI
 from .leetcode_object import (
   Problem, ProblemURL
@@ -8,7 +7,6 @@ from .leetcode_utils import (
   problem_url_parse,
   problem_to_markdown
 )
-from utils import cd
 
 class LeetcodeCLI:
   """LeetCode Command Line Interface"""
