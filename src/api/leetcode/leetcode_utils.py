@@ -4,8 +4,13 @@ import typing
 import urllib.parse
 
 from utils import CustomMarkdownConverter
-from .leetcode_object import Problem, ProblemURL
-from .leetcode_constants import leetcode_urls
+from .leetcode_object import (
+    ContestURL,
+    LeetcodeURL,
+    Problem,
+    ProblemURL,
+)
+from .leetcode_constants import LeetcodeURLs
 
 
 def problem_parse(data: typing.Dict[str, str]) -> None:
@@ -55,16 +60,20 @@ def problem_parse(data: typing.Dict[str, str]) -> None:
     )
 
 
-def problem_url_parse(url: str) -> ProblemURL:
-    if not url.startswith(leetcode_urls.get("problems")) and not url.startswith(
-        leetcode_urls.get("contest")
-    ):
-        raise ValueError(
-            f'problem url must start with "{leetcode_urls.get("problems")}"'
-        )
+def leetcode_url_parse(url: str) -> LeetcodeURL:
     urlsplit = urllib.parse.urlsplit(url)
-    slug = re.search(r"/problems/([a-zA-z0-9\-]+)", urlsplit.path).group(1)
-    return ProblemURL(slug)
+    
+    if url.startswith(LeetcodeURLs.PROBLEMS) or url.startswith(LeetcodeURLs.CONTEST):
+        slug = re.search(r"/problems/([a-zA-Z0-9\-]+)", urlsplit.path)
+        if slug is not None:
+            return ProblemURL(slug.group(1))
+    
+    if url.startswith(LeetcodeURLs.CONTEST):
+        slug = re.search(r"/contest/([a-zA-Z0-9\-]+)", urlsplit.path)
+        if slug is not None:
+            return ContestURL(slug.group(1))
+    
+    raise ValueError("Invalid URL")
 
 
 def problem_to_markdown(problem: Problem) -> None:

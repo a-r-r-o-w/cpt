@@ -1,6 +1,6 @@
-import typing
+from typing import List, Union
 
-from .leetcode_constants import leetcode_urls
+from .leetcode_constants import LeetcodeURLs
 
 
 class LeetcodeObject:
@@ -23,12 +23,12 @@ class Problem(LeetcodeObject):
         difficulty: str,
         likes: int,
         dislikes: int,
-        tags: typing.List[str],
+        tags: List[str],
         total_accepted: int,
         total_submissions: int,
         acceptance_rate: float,
-        hints: typing.List[str],
-        similar_problems: typing.List[dict],
+        hints: List[str],
+        similar_problems: List[dict],
     ) -> None:
         self.id = id
         self.frontend_id = frontend_id
@@ -50,8 +50,19 @@ class Problem(LeetcodeObject):
 
 
 class ProblemURL(LeetcodeObject):
-    """Represents a Leetcode Problem URL"""
+    r"""Represents a Leetcode Problem URL"""
 
     def __init__(self, slug: str):
         self.slug = slug
-        self.url = leetcode_urls.get("problems") + self.slug
+        self.url = LeetcodeURLs.PROBLEMS + self.slug
+
+
+class ContestURL(LeetcodeObject):
+    r"""Represents a Leetcode Contest URL"""
+
+    def __init__(self, slug: str):
+        self.slug = slug
+        self.url = LeetcodeURLs.CONTEST + self.slug
+
+
+LeetcodeURL = Union[ProblemURL, ContestURL]
