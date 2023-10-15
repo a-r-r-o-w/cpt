@@ -1,12 +1,10 @@
 import json
 
 lcgraphql_objects = {
-  "question_data": {
-    "operationName": "questionData",
-    "variables": {
-      "titleSlug": None
-    },
-    "query": """\
+    "question_data": {
+        "operationName": "questionData",
+        "variables": {"titleSlug": None},
+        "query": """\
       query questionData($titleSlug: String!) {
         question(titleSlug: $titleSlug) {
           questionId
@@ -76,14 +74,14 @@ lcgraphql_objects = {
           }
           __typename
         }
-      }"""
-  }
+      }""",
+    }
 }
 
 
-def get_object (name: str, variables: dict) -> str:
-  obj = lcgraphql_objects.get(name)
-  if obj is None:
-    raise ValueError(f'Object with name {name} does not exist')
-  obj['variables'].update(variables)
-  return json.dumps(obj)
+def get_object(name: str, variables: dict) -> str:
+    obj = lcgraphql_objects.get(name)
+    if obj is None:
+        raise ValueError(f"Object with name {name} does not exist")
+    obj["variables"].update(variables)
+    return json.dumps(obj)
