@@ -62,17 +62,17 @@ def problem_parse(data: typing.Dict[str, str]) -> None:
 
 def leetcode_url_parse(url: str) -> LeetcodeURL:
     urlsplit = urllib.parse.urlsplit(url)
-    
+
     if url.startswith(LeetcodeURLs.PROBLEMS) or url.startswith(LeetcodeURLs.CONTEST):
         slug = re.search(r"/problems/([a-zA-Z0-9\-]+)", urlsplit.path)
         if slug is not None:
             return ProblemURL(slug.group(1))
-    
+
     if url.startswith(LeetcodeURLs.CONTEST):
         slug = re.search(r"/contest/([a-zA-Z0-9\-]+)", urlsplit.path)
         if slug is not None:
             return ContestURL(slug.group(1))
-    
+
     raise ValueError("Invalid URL")
 
 

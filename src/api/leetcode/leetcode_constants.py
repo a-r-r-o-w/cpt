@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class LeetcodeURLs(str, Enum):
     BASE = "https://leetcode.com/"
     PROBLEMS = "https://leetcode.com/problems/"

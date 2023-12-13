@@ -19,7 +19,7 @@ class LeetcodeCLI:
                 (example problem url: https://leetcode.com/problems/two-sum/)
                 (example contest url: https://leetcode.com/contest/weekly-contest-100/)
             path (str): Path (default is current working directory)
-        
+
         Raises:
             ValueError: invalid url
         """
@@ -31,14 +31,14 @@ class LeetcodeCLI:
                 await self._clone_problem(parsed_url)
             elif isinstance(parsed_url, ContestURL):
                 await self._clone_contest(parsed_url)
-    
+
     async def _clone_problem(self, parsed_url: ProblemURL) -> None:
         problem = await self.api.get_problem_data(slug=parsed_url.slug)
         filename = f"{problem.frontend_id}-{problem.slug}.md"
-        
+
         with open(filename, "w") as file:
             file.write(problem_to_markdown(problem))
-    
+
     async def _clone_contest(self, parsed_url: ContestURL) -> None:
         contest_problems = await self.api.get_contest_data(slug=parsed_url.slug)
 
