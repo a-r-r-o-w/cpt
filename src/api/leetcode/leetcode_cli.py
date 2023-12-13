@@ -1,7 +1,7 @@
-from utils import cd
 from .leetcode import LeetcodeAPI
 from .leetcode_object import ContestURL, ProblemURL
 from .leetcode_utils import leetcode_url_parse, problem_to_markdown
+from utils import cd
 
 
 class LeetcodeCLI:

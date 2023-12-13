@@ -2,12 +2,14 @@
 
 import fire
 
+from api.advent_of_code.aoc_cli import AdventOfCodeCLI
 from api.cses.cses_cli import CSESCLI
 from api.leetcode.leetcode_cli import LeetcodeCLI
 
 
 class CLI:
     def __init__(self):
+        self.aoc = AdventOfCodeCLI()
         self.cses = CSESCLI()
         self.leetcode = LeetcodeCLI()
 
